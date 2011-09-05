@@ -1,0 +1,59 @@
+<!DOCTYPE HTML SYSTEM "about:legacy-compat"> 
+<html> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+<link rel="SHORTCUT ICON" href="favicon.png"/> 
+<title>jQuery Mobile Player</title> 
+ 
+<!-- jQuery and jQuery UI import --> 
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.css" />
+<script src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
+<script src="js/main.js"></script>
+<script src="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.js"></script>
+</head> 
+ 
+<body> 
+
+
+<div data-role="page" class="player">
+
+    <div data-role="header">
+        <h1>My collection</h1>
+    </div><!-- /header -->
+
+    <div data-role="content">
+	
+	<div class='cover-art' style='text-align:center'>
+		<audio src='music/kpop/ttl2.mp3' preload autoplay></audio>
+		<img src='images/no-album-art.png' />
+	</div>
+    </div><!-- /content -->
+    <div data-role='footer' style='text-align:center'>
+	<p class='track-info'>
+		<span class="song-progress">
+			<input type="range" min="0" max="100" value="0" />
+		</span>
+		<span class="timeleft"></span>
+	</p>
+	<div class='playback' data-role="controlgroup" data-type='horizontal' style='text-align:center'>
+<button class='playback-prev' data-icon='back'>Prev</button>
+<button class='playback-play' >||</button>
+<button class='playback-next' data-icon="forward" data-iconpos="right">Next</button>
+</div>
+	</div>
+<script type="text/javascript">
+	$('div.player').bind('pageshow', function(ev, ui) {
+		if (!$(this).attr('data-init')) {
+			Player.init('div.player.ui-page-active', $.getUrlVar($(this).attr('data-url'), 'song'));
+			$(this).attr('data-init', 'true');
+		}
+	});
+</script>
+</div><!-- /page -->
+
+
+</body> 
+
+
+
+</html>
