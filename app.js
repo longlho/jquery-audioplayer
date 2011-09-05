@@ -1,21 +1,12 @@
-var app = require('express').createServer();
+var express = require('express');
+var app = express.createServer();
 var fs = require('fs');
 
-var public_path = 'public/';
 var PORT = 8080;
 var MUSIC_PATH = 'music/';
 var songs;
-app.get('/', function(req, res) {
-	console.log("Request from:" + req.connection.remoteAddress);
-	res.sendfile(public_path + 'index.html');
-});
+app.use(express.static(__dirname + '/public', {maxAge : 86400000}));
 
-app.get('/*', function(req, res) {
-	console.log("Request from:" + req.connection.remoteAddress);
-	var page = req.params[0];	
-	res.sendfile(public_path + page);
-	
-});
 
 app.post('/playlist.html', function(req, res){
 	console.log("Request from:" + req.connection.remoteAddress);
@@ -26,7 +17,7 @@ app.post('/playlist.html', function(req, res){
 var Playlist = {	
 	
 	get : function(name) {
-		return fs.readdirSync(public_path + MUSIC_PATH + name);	
+		return fs.readdirSync(__dirname + '/public/' + MUSIC_PATH + name);	
 	}
 };
 
@@ -48,4 +39,4 @@ var Controller = {
 };
 
 console.log("Server running at port " +  PORT);
-app.listen(8080);
+app.listen(PORT);
