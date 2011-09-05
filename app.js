@@ -8,7 +8,7 @@ var songs;
 app.use(express.static(__dirname + '/public', {maxAge : 86400000}));
 
 
-app.post('/playlist.html', function(req, res){
+app.post('/playlist', function(req, res){
 	console.log("Request from:" + req.connection.remoteAddress);
 	Controller.handlePlaylist(req, res);
 });

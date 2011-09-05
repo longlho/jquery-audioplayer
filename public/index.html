@@ -30,7 +30,7 @@
 $('div.playlist').bind('pageshow', function() {
         var $page = $(this);
         if (!($page.attr('data-init'))) {
-                $.post('playlist.html?playlist=kpop', null, function(data){
+                $.post('playlist?playlist=kpop', null, function(data){
                         var i;
                         var filenames = data['filenames'];
                         var $playlist = $page.find('ul[data-role="listview"]');

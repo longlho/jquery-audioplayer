@@ -108,7 +108,7 @@ Player = {
 	},
 
 	getSongPath : function(index, $audio, $title, fn) {
-		$.post('playlist.html?song=' + index, null, function(data){
+		$.post('playlist?song=' + index, null, function(data){
 			console.log(data);
 			$audio.attr('src', data.result);
 			var filenameArr = data.result.split('/');
