@@ -2,7 +2,7 @@
     "author": "Long Ho <holevietlong@gmail.com>",
     "name": "jquery-audioplayer",
     "version": "0.0.1",
-    "main" : "app.js"
+    "main" : "server.js",
     "engines" : {
         "node" : ">=0.4.12"
     },

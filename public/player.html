@@ -7,6 +7,10 @@
  
 <!-- jQuery and jQuery UI import --> 
 <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css" />
+<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
+<script src="js/main.js"></script>
+
 </head> 
  
 <body> 
@@ -37,13 +41,8 @@
             <button class='playback-next' data-icon="forward" data-iconpos="right">Next</button>
         </div>
 	</div>
-
-</div><!-- /page -->
-
-<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-<script src="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
-<script src="js/main.js"></script>
-<script type="text/javascript">
+  <!-- Have to put script here for it to be loaded as a new view -->
+  <script type="text/javascript">
     $('div.player').bind('pageshow', function(ev, ui) {
 		if (!$(this).data('init')) {
 			new Player('div.player.ui-page-active', $.getUrlVar($(this).attr('data-url'), 'song'));
@@ -51,6 +50,9 @@
 		}
 	});
 </script>
+
+</div><!-- /page -->
+
 </body> 
 
 

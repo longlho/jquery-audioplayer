@@ -1,7 +1,7 @@
 var express = require('express')
 ,   app = express.createServer()
 ,   fs = require('fs')
-,   PORT = process.env.PORT
+,   PORT = 8081
 ,   MUSIC_PATH = 'music/'
 ,   songs;
 
