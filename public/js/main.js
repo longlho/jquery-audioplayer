@@ -23,148 +23,151 @@ $.extend({
 	}
 });
 
-Player = {
-	init : function(div, song) {
+// Rudimentary wrapper that acts like a model, but I don't wanna bring Backbone
+// in since this POC is simple.
+var Audio = function ($audio) {
+    var _reset = function (index, filename) {
+            $audio.data('current', parseInt(index, 10));
+            $audio.trigger('change:index', $audio.data('current'));
+            $audio.attr('src', filename);
+            $audio.trigger('change:src', filename);
+            _setState($audio.data('state'));
+        }
+    ,   _setState = function (state) {
+            switch (state) {
+                case 'play':
+                    $audio.get(0).play();
+                    break;
+                case 'pause':
+                    $audio.get(0).pause();
+                    break;
+            }
+            $audio.data('state', state);
+            $audio.trigger('change:state', state);
+        }
+    ,   _fetch = function (index, options) {
+            $.getJSON('playlist?song=' + index, null, function (data) {
+            	_reset(index, data.result);
+                if (!options) return;
+                $.isFunction(options.success) && options.success();
+    		});
+        };
+        
+    $audio.bind('ended', function () {
+    	_fetch($audio.data('current') + 1);
+	});
+    
+    return {
+        setState : _setState,
+        state : function () {
+            return $audio.data('state');
+        },
+        current : function () {
+            return $audio.data('current');
+        },
+        fetch : _fetch,
+        getDOMAudio : function () { return $audio.get(0); }
+    }
+}
 
-        	var $next = $(div + ' button.playback-next');
-	        var $prev = $(div + ' button.playback-prev');
-	        var $play = $(div + ' button.playback-play');
-		var $trackInfo = $(div + ' p.track-info');
-		var $songProgress = $trackInfo.find('.song-progress');
-		var $loading = $songProgress.find('.loading');
-		var $timeLeft = $trackInfo.find('.timeleft');
-		var $slider = $songProgress.find('.ui-slider');
-		var $handle = $slider.find('.ui-slider-handle');
-		$songProgress.find('input[type="number"]').hide();
-		var $title = $(div + ' h1.ui-title');
-	        var $audio = $(div + ' audio');
-		var audio = $audio.get(0);
-	        console.log(song);
-		Player.getSongPath(song, $audio, $title);
-
-
-		var $loading = $slider.find('div.loading');
-		if (!$loading.get(0)) {
-			$handle.before('<div class="ui-slider loading" style="width: 3%; float: left; top: 0; left: -3%; background-color: buttonface;"></div>');
-			$loading = $slider.find('div.loading');
-		}
-		$audio.bind('progress', function() {
-			var loaded = parseInt(((audio.buffered.end(0) / audio.duration) * 100) + 3, 10);
-			$loading.css({ width : loaded + '%'});
-		});
-		var manualSeek = false;
-		var loaded = false;
-		$handle.css({top : '-50%' });
-		$audio.bind('timeupdate', function() {
-			var rem = parseInt(audio.duration - audio.currentTime, 10),
-			    pos = Math.floor((audio.currentTime / audio.duration) * 100),
-			    mins = Math.floor(rem/60, 10),
-			    secs = rem - mins * 60;
-
-			$timeLeft.text('-' + mins + ':' + (secs > 9 ? secs : '0' + secs));
-			if (!manualSeek) { $handle.css({left: pos + '%'}); }
-			if (!loaded) {
-				loaded = true;
-			}
-		});
-
-		$audio.attr('data-current', song);
-		$audio.attr('data-state', 'play');
-	        $play.click(function(ev) { 
-        	        var $buttonText = $(this).parent().find('.ui-btn-text');
-	                if (audio.paused) {
-				$audio.attr('data-state', 'play');
-        	                audio.play();
-                	        $buttonText.text("||");
-	                } else {
-				$audio.attr('data-state', 'pause');
-        	                audio.pause();
-                	        $buttonText.text("Play");
-	                }
+var Player = function (div, song) {
+    
+    var _setupControls = function (options) {
+            var _audio = options.audio;
+            
+            options.play.click(function () {
+                switch (_audio.state) {
+                    case 'play':
+                        _audio.setState('pause');
+                        break;
+                    case 'pause':
+                        _audio.setState('play');
+                        break;
+                }
         	});
-	        $next.click(function(ev) {
-			var state = $audio.attr('data-state');
-			var current = parseInt($audio.attr('data-current'));
-			Player.getSongPath(current + 1, $audio, $title, function() {
-				$audio.attr('data-current', current + 1);
-                                if (state == 'play') {
-                                      audio.play();
-                                }
-                        });
+	        options.next.click(function () {
+                _audio.fetch(_audio.data('current') + 1);
 	        });
-        	$prev.click(function(ev) {
-	        	var state = $audio.attr('data-state');
-                        var current = parseInt($audio.attr('data-current'));
-                        Player.getSongPath(current - 1, $audio, $title, function() {
-                                $audio.attr('data-current', current - 1);
-                                if (state == 'play') {
-                                      audio.play();
-                                }
-                        });
-		});
-		$audio.bind('ended', function(ev) {
-			$next.click();
-		});
-	},
+        	options.prev.click(function () {
+	        	_audio.fetch(_audio.data('current') - 1);
+		    });   
+        }
+    ,   _setupProgress = function (options) {
+            var audio = options.audio.get(0);
+    		options.audio.on('progress', function() {
+    			var loaded = parseInt(((audio.buffered.end(0) / audio.duration) * 100) + 3, 10);
+    			options.loading.css({ width : loaded + '%'});
+    		});
+    		var manualSeek = false;
+    		var loaded = false;
+    		options.handle.css({top : '-50%' });
+    		options.audio.on('timeupdate', function() {
+    			var rem = parseInt(audio.duration - audio.currentTime, 10),
+    			    pos = Math.floor((audio.currentTime / audio.duration) * 100),
+    			    mins = Math.floor(rem/60, 10),
+    			    secs = rem - mins * 60;
+    
+    			options.timeLeft.text('-' + mins + ':' + (secs > 9 ? secs : '0' + secs));
+    			if (!manualSeek) { options.handle.css({left: pos + '%'}); }
+    			if (!loaded) {
+    				loaded = true;
+    			}
+    		});
+        };
 
-	getSongPath : function(index, $audio, $title, fn) {
-		$.post('playlist?song=' + index, null, function(data){
-			console.log(data);
-			$audio.attr('src', data.result);
-			var filenameArr = data.result.split('/');
-			var filename = filenameArr[filenameArr.length - 1];
-			$title.text(filename);
-			if ($.isFunction(fn)) {
-				fn();
-			}
-		}, 'json');
-	}
-}
-
-Portfolio = {
+    
+    
+    var $next = $(div + ' button.playback-next')
+    ,   $prev = $(div + ' button.playback-prev')
+    ,   $play = $(div + ' button.playback-play')
+	,   $trackInfo = $(div + ' p.track-info')
+	,   $songProgress = $trackInfo.find('.song-progress')
+	,   $loading = $songProgress.find('.loading')
+	,   $timeLeft = $trackInfo.find('.timeleft')
+	,   $slider = $songProgress.find('.ui-slider')
+	,   $handle = $slider.find('.ui-slider-handle')
+	,   $title = $(div + ' h1.ui-title')
+    ,   $buttonText = $play.parent().find('.ui-btn-text')
+    ,   $audio = $(div + ' audio');
+    
+    var _audioModel = new Audio($audio);
+    $audio.on('change:src', function (filename) {
+        var filenameArr = filename.split('/')
+		,   songName = filenameArr[filenameArr.length - 1];
+        $title.text(songName);
+    });
+    $audio.on('change:state', function (state) {
+        switch (state) {
+            case 'play':
+                $buttonText.text("||");
+                break;
+            case 'pause':
+                $buttonText.text("Play");
+                break;
+        }
+    });
+    
+    // Hide the number of the slider
+    $songProgress.find('input[type="number"]').hide();
+	console.log(song);
 	
-
-	init: function() {
-		$('#main-content > ul > li > details').dialog({
-			width: 500,
-			modal: true,
-			autoOpen: false
-		});
-		//Setup fancybox image viewer
-			$("a[rel=metadb], a[rel=compart], a[rel=mauthner], a[rel=ilaf], a[rel=damtycoon]").fancybox({
-				'transitionIn'		: 'none',
-				'transitionOut'		: 'none',
-				'titlePosition' 	: 'over',
-				'titleFormat'       : function(title, currentArray, currentIndex, currentOpts) {
-				    return '<span id="fancybox-title-over"> ' +  title + '</span>';
-				}
-			});
-
-		$('#sidebar a').fancybox({
-			'width'				: '75%',
-				'height'			: '75%',
-				'autoScale'			: false,
-				'transitionIn'		: 'none',
-				'transitionOut'		: 'none',
-				'type'				: 'iframe',
-				titlePosition		: 'over'
-
-		});
-
-	
-		$('#main-content > ul > li').click(function(ev, ui){
-			var target = $(ev.target).attr('data-details');
-			var title = $(ev.target).find('div').html();
-			if (target == '' || target === undefined) {
-				target = $(ev.target).parents('li:first').attr('data-details');
-				title = $(ev.target).html();
-			}
-			$('details[data-id='+target+']').dialog('option', 'title', title);
-			$('details[data-id='+target+']').dialog('open');
-		});
-	},
-
-	setupNav: function($target) {
-
+    $loading = $slider.find('div.loading');
+	if (!$loading.get(0)) {
+    	$handle.before('<div class="ui-slider loading" style="width: 3%; float: left; top: 0; left: -3%; background-color: buttonface;"></div>');
+		$loading = $slider.find('div.loading');
 	}
-}
+    _audioModel.fetch(song);
+    
+    _setupProgress({
+        audio : _audioModel,
+        handle : $handle,
+        timeLeft : $timeLeft,
+        loading : $loading
+    });
+	_setupControls({
+        audio : _audioModel,
+        next : $next,
+        prev : $prev,
+        play : $play
+    });
+};

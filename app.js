@@ -1,35 +1,39 @@
-var express = require('express');
-var app = express.createServer();
-var fs = require('fs');
+var express = require('express')
+,   app = express.createServer()
+,   fs = require('fs')
+,   PORT = process.env.PORT
+,   MUSIC_PATH = 'music/'
+,   songs;
 
-var PORT = 8080;
-var MUSIC_PATH = 'music/';
-var songs;
+
 app.use(express.static(__dirname + '/public', { maxAge: 86400000 }));
-
-
-app.post('/playlist', function(req, res) {
+app.all('/playlist', function(req, res) {
     console.log("Request from:" + req.connection.remoteAddress);
     Controller.handlePlaylist(req, res);
 });
 
 
-var Playlist = {
-    get: function(name) {
-        return fs.readdirSync(__dirname + '/public/' + MUSIC_PATH + name);
+var Playlist = (function () {
+    return {
+        getSong: function(name) {
+            return fs.readdirSync(__dirname + '/public/' + MUSIC_PATH + name);
+        }
     }
-};
+})();
 
-var Controller = {
-    handlePlaylist: function(req, res) {
-        if (!songs)
-            songs = Playlist.get(req.param('playlist'));
-        var index = req.param('song');
-        index && index >= 0 && index < songs.length
-        ? res.send({ 'result': MUSIC_PATH + 'kpop/' + songs[index] })
-        : res.send({ 'filenames': songs });
+var Controller = (function () {
+    return {
+        handlePlaylist: function(req, res) {
+            if (!songs) {
+                songs = Playlist.getSong(req.param('playlist'));
+            }
+            var index = req.param('song');
+            index && index >= 0 && index < songs.length
+            ? res.send({ 'result': MUSIC_PATH + 'kpop/' + songs[index] })
+            : res.send({ 'filenames': songs });
+        }
     }
-};
+})();
 
 console.log("Server running at port " + PORT);
 app.listen(PORT);

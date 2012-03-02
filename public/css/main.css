@@ -2,17 +2,6 @@
 /* CSS Document */
 
 
-@font-face {
-font-family: "H35";
-src: url(fonts/Helvetica-Neue-CE-35-Thin.ttf) format("truetype");
-}
-
-
-@font-face {
-font-family: "HNL";
-src: url(fonts/HelveticaNeue-Light.ttf) format("truetype");
-}
-
 body {
 	color: black;
 	background-color: #363636;

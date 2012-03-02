@@ -1,4 +1,12 @@
 {
-  "name": "jquery-audioplayer",
-  "version": "0.0.1"
+    "author": "Long Ho <holevietlong@gmail.com>",
+    "name": "jquery-audioplayer",
+    "version": "0.0.1",
+    "main" : "app.js"
+    "engines" : {
+        "node" : ">=0.4.12"
+    },
+    "dependencies" : {
+        "express" : ">=2.5.0"
+    }
 }
