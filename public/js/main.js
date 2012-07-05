@@ -26,65 +26,66 @@ $.extend({
 // Rudimentary wrapper that acts like a model, but I don't wanna bring Backbone
 // in since this POC is simple.
 var Audio = function ($audio) {
+  var _this = this;
+  this.$audio = $audio;
+
   var _reset = function (index, filename) {
     if (!filename) return;
-    $audio.data('current', parseInt(index, 10));
-    $audio.trigger('change:index', $audio.data('current'));
-    $audio.attr('src', filename);
-    $audio.trigger('change:src', filename);
-    _setState($audio.data('state') || 'play');
-  }
-  ,   _setState = function (state) {
+    this.$audio.data('current', parseInt(index, 10));
+    this.$audio.trigger('change:index', $audio.data('current'));
+    this.$audio.attr('src', filename);
+    this.$audio.trigger('change:src', filename);
+    this.setState($audio.data('state') || 'play');
+  };
+
+  this.$audio.on('ended', function () {
+    _this.fetch(_this.getCurrent() + 1);
+  });
+
+  this.setState = function (state) {
     switch (state) {
       case 'play':
-        $audio.get(0).play();
-      break;
+        this.getDOMAudio().play();
+        break;
       case 'pause':
-        $audio.get(0).pause();
-      break;
+        this.getDOMAudio().pause();
+        break;
     }
-    $audio.data('state', state);
-    $audio.trigger('change:state', state);
-  }
-  ,   _fetch = function (index, options) {
+    this.$audio.data('state', state);
+    this.$audio.trigger('change:state', state);
+  };
+  this.getState = function () {
+    return this.$audio.data('state');
+  };
+  this.getCurrent = function () {
+    return this.$audio.data('current');
+  };
+  this.fetch = function (index, options) {
     if (index < 0) index = 0;
     $.getJSON('playlist?song=' + index, null, function (data) {
-      _reset(index, data.result);
+      _reset.call(_this, index, data.result);
       if (!options) return;
       $.isFunction(options.success) && options.success();
     });
   };
-
-  $audio.bind('ended', function () {
-    _fetch(_audioModel.getCurrent() + 1);
-  });
-
-  return {
-    setState : _setState,
-    getState : function () {
-      return $audio.data('state');
-    },
-    getCurrent : function () {
-      return $audio.data('current');
-    },
-    fetch : _fetch,
-    getDOMAudio : function () { return $audio.get(0); }
-  }
+  this.getDOMAudio = function () {
+    return $audio.get(0);
+  };
 }
 
 var Player = function (div, song) {
 
   var _setupControls = function (options) {
-    var _audio = options.audio;
+    var model = options.model;
 
     options.play.click(function () {
-      switch (_audio.getState()) {
+      switch (model.getState()) {
         case 'play':
-          _audio.setState('pause');
-        break;
+          model.setState('pause');
+          break;
         case 'pause':
-          _audio.setState('play');
-        break;
+          model.setState('play');
+          break;
       }
     });
     options.next.click(function () {
@@ -92,18 +93,21 @@ var Player = function (div, song) {
     });
     options.prev.click(function () {
       _audio.fetch(_audio.getCurrent() - 1);
-    });   
+    });
   }
   ,   _setupProgress = function (options) {
-    var audio = options.audio.get(0);
-    options.audio.on('progress', function () {
-      var loaded = parseInt(((audio.buffered.end(0) / audio.duration) * 100) + 3, 10);
-      options.loading.css({ width : loaded + '%'});
+    var model = options.model
+      , audio = model.getDOMAudio();
+    model.$audio.on('progress', function () {
+      console.log(this.buffered.end(0));
+      console.log(this.duration);
+      var loaded = parseInt(((this.buffered.end(0) / this.duration) * 100) + 3, 10);
+      options.loading.css('width', loaded + '%');
     });
     var manualSeek = false;
     var loaded = false;
-    options.handle.css({top : '-50%' });
-    options.audio.on('timeupdate', function () {
+    options.handle.css('top', '-50%');
+    model.$audio.on('timeupdate', function () {
       var rem = parseInt(audio.duration - audio.currentTime, 10),
       pos = Math.floor((audio.currentTime / audio.duration) * 100),
       mins = Math.floor(rem/60, 10),
@@ -142,32 +146,31 @@ var Player = function (div, song) {
     switch (state) {
       case 'play':
         $buttonText.text("||");
-      break;
+        break;
       case 'pause':
         $buttonText.text("Play");
-      break;
+        break;
     }
   });
 
   // Hide the number of the slider
   $songProgress.find('input[type="number"]').hide();
-  console.log(song);
 
   $loading = $slider.find('div.loading');
   if (!$loading.get(0)) {
-    $handle.before('<div class="ui-slider loading" style="width: 3%; float: left; top: 0; left: -3%; background-color: buttonface;"></div>');
+    $handle.before('<div class="ui-slider loading" style="width: 3%; float: left; top: -15px; left: -3%; background-color: buttonface;"></div>');
     $loading = $slider.find('div.loading');
   }
   _audioModel.fetch(song);
 
   _setupProgress({
-    audio : $audio,
+    model: _audioModel,
     handle : $handle,
     timeLeft : $timeLeft,
     loading : $loading
   });
   _setupControls({
-    audio : _audioModel,
+    model : _audioModel,
     next : $next,
     prev : $prev,
     play : $play

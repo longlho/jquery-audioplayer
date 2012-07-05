@@ -1,4 +1,4 @@
-<!DOCTYPE HTML SYSTEM "about:legacy-compat"> 
+<!DOCTYPE HTML>
 <html> 
 <head> 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
@@ -6,9 +6,9 @@
 <title>jQuery Mobile Player</title> 
  
 <!-- jQuery and jQuery UI import --> 
-<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css" />
-<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-<script src="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
 <script src="js/main.js"></script>
 
 </head> 
@@ -43,12 +43,13 @@
 	</div>
   <!-- Have to put script here for it to be loaded as a new view -->
   <script type="text/javascript">
-    $('div.player').bind('pageshow', function(ev, ui) {
-		if (!$(this).data('init')) {
-			new Player('div.player.ui-page-active', $.getUrlVar($(this).attr('data-url'), 'song'));
-			$(this).data('init', 'true');
-		}
-	});
+    $('div.player').on('pageshow', function(ev, ui) {
+      if ($(this).data('init')) {
+        return;
+      }
+      new Player('div.player.ui-page-active', $.getUrlVar($(this).attr('data-url'), 'song'));
+      $(this).data('init', 'true');
+    });
 </script>
 
 </div><!-- /page -->
