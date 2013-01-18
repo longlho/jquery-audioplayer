@@ -1,12 +1,12 @@
 {
-    "author": "Long Ho <holevietlong@gmail.com>",
-    "name": "jquery-audioplayer",
-    "version": "0.0.1",
-    "main" : "server.js",
-    "engines" : {
-        "node" : ">=0.4.12"
+  "author": "Long Ho <holevietlong@gmail.com>",
+  "name": "jquery-audioplayer",
+  "version": "0.0.1",
+  "main" : "server.js",
+  "engines" : {
+    "node" : ">=0.4.12"
     },
     "dependencies" : {
-        "express" : ">=2.5.0"
+      "express" : ">=3.0"
     }
-}
+  }
