@@ -77,6 +77,58 @@ var JAudio = function ($audio) {
 
 var Player = function (div, song) {
 
+  var context = webkitAudioContext ? new webkitAudioContext() : {}
+    , _audioModel;
+
+  var _init = function () {
+    var $next = $(div + ' button.playback-next')
+      , $prev = $(div + ' button.playback-prev')
+      , $play = $(div + ' button.playback-play')
+      , $trackInfo = $(div + ' p.track-info')
+      , $songProgress = $trackInfo.find('.song-progress')
+      , $loading = $songProgress.find('.loading')
+      , $timeLeft = $trackInfo.find('.timeleft')
+      , $slider = $songProgress.find('.ui-slider')
+      , $handle = $slider.find('.ui-slider-handle')
+      , $title = $(div + ' h1.ui-title')
+      , $buttonText = $play.parent().find('.ui-btn-text')
+      , $audio = $(div + ' audio');
+
+    _audioModel = new JAudio($audio);
+    $audio
+      .on('change:src', function (ev, filename) {
+        var filenameArr = filename.split('/')
+          , songName = filenameArr[filenameArr.length - 1];
+        $title.text(songName);
+      })
+      .on('change:state', function (ev, state) {
+        return $buttonText.text(state === 'play' ? "||" : 'Play');
+      });
+
+    // Hide the number of the slider
+    $songProgress.find('input[type="number"]').hide();
+
+    $loading = $slider.find('div.loading');
+    if (!$loading.get(0)) {
+      $handle.before('<div class="ui-slider loading" style="width: 3%; float: left; top: -15px; left: -3%; background-color: buttonface;"></div>');
+      $loading = $slider.find('div.loading');
+    }
+    _audioModel.fetch(song);
+
+    _setupProgress({
+      model: _audioModel,
+      handle : $handle,
+      timeLeft : $timeLeft,
+      loading : $loading
+    });
+    _setupControls({
+      model : _audioModel,
+      next : $next,
+      prev : $prev,
+      play : $play
+    });
+  };
+
   var _setupControls = function (options) {
     var model = options.model;
 
@@ -126,58 +178,5 @@ var Player = function (div, song) {
       });
   };
 
-
-
-  var $next = $(div + ' button.playback-next')
-    , $prev = $(div + ' button.playback-prev')
-    , $play = $(div + ' button.playback-play')
-    , $trackInfo = $(div + ' p.track-info')
-    , $songProgress = $trackInfo.find('.song-progress')
-    , $loading = $songProgress.find('.loading')
-    , $timeLeft = $trackInfo.find('.timeleft')
-    , $slider = $songProgress.find('.ui-slider')
-    , $handle = $slider.find('.ui-slider-handle')
-    , $title = $(div + ' h1.ui-title')
-    , $buttonText = $play.parent().find('.ui-btn-text')
-    , $audio = $(div + ' audio');
-
-  var _audioModel = new JAudio($audio);
-  $audio.on('change:src', function (ev, filename) {
-    var filenameArr = filename.split('/')
-      , songName = filenameArr[filenameArr.length - 1];
-    $title.text(songName);
-  });
-  $audio.on('change:state', function (ev, state) {
-    switch (state) {
-      case 'play':
-        $buttonText.text("||");
-        break;
-      case 'pause':
-        $buttonText.text("Play");
-        break;
-    }
-  });
-
-  // Hide the number of the slider
-  $songProgress.find('input[type="number"]').hide();
-
-  $loading = $slider.find('div.loading');
-  if (!$loading.get(0)) {
-    $handle.before('<div class="ui-slider loading" style="width: 3%; float: left; top: -15px; left: -3%; background-color: buttonface;"></div>');
-    $loading = $slider.find('div.loading');
-  }
-  _audioModel.fetch(song);
-
-  _setupProgress({
-    model: _audioModel,
-    handle : $handle,
-    timeLeft : $timeLeft,
-    loading : $loading
-  });
-  _setupControls({
-    model : _audioModel,
-    next : $next,
-    prev : $prev,
-    play : $play
-  });
+  _init();
 };
